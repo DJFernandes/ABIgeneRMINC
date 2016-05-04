@@ -1,0 +1,14 @@
+Package: ABIgeneRMINC
+Type: Package
+Title: Read, Write, and Analyzing Allen Gene Expression Raw Data
+Version: 1.0
+Date: 2016-05-04
+Author: Darren Fernandes
+Maintainer: Darren Fernandes <fernadj2@gmail.com>
+Description: Read, Write, and Analyzing Allen Gene Expression Raw Data.
+    Convert to Space used in RMINC for Relating Gene Expression and MRI Data
+Suggests:
+    RMINC
+License: BSD
+LazyLoad: yes
+URL: https://github.com/DJFernandes/ABIgeneRMINC
