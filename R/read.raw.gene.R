@@ -13,6 +13,16 @@
 #'
 #' filename=system.file('extdata/Pdyn_energy_experiment71717084.raw',package="ABIgeneRMINC")
 #' gene.expression=read.raw.gene(filename)
+#' 
+#' ##Make coronal slice image
+#' # First convert data from 1-D vector to 3-D array
+#' gene.expression.array=array(gene.expression,c(67,41,58))
+#' 
+#' #Coronal slice
+#' image(gene.expression.array[10,,], ylab='Left-Right' ,xlab='Superior-Inferior')
+#' 
+#' #Sagittal Slice
+#' image(gene.expression.array[,,5], ylab='Superior-Inferior' ,xlab='Anterior-Posterior')
 #' @export
 
 read.raw.gene <- function(filename,labels=FALSE) {
