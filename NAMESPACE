@@ -2,5 +2,7 @@
 
 export(allenVectorTOmincVector)
 export(mincVectorTOallenVector)
+export(ont.children)
 export(read.raw.gene)
+export(unionize)
 export(write.raw.gene)
