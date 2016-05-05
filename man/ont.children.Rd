@@ -27,7 +27,7 @@ Given a stucture label in the Allen Brain Atlas, this function will find all its
 
 # Read Gene expression file
 genefilename=system.file('extdata/Pdyn_energy_experiment71717084.raw',package="ABIgeneRMINC")
-gene.expression=read.raw.gene(filename)
+gene.expression=read.raw.gene(genefilename)
 
 # Read Labels
 labelfilename=system.file('extdata/gridAnnotation.raw',package="ABIgeneRMINC")

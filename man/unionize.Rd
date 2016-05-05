@@ -31,7 +31,7 @@ Using this function you can add the gene expression voxels within a particular l
 
 # Read Gene expression file
 genefilename=system.file('extdata/Pdyn_energy_experiment71717084.raw',package="ABIgeneRMINC")
-gene.expression=read.raw.gene(filename)
+gene.expression=read.raw.gene(genefilename)
 
 # Read Labels
 labelfilename=system.file('extdata/gridAnnotation.raw',package="ABIgeneRMINC")
