@@ -5,6 +5,7 @@
 #' @param grid.data 1D vector of voxels to sum over (fro example gene expression data)
 #' @param labels.to.sum The struction labels you want to unionize over. This is parameter is vectorized so you can sum over multiple labels and get statistical data for each label seperately
 #' @param labels.grid 1D vector of labels (must be registered to grid.data)
+#' @param neg.rm Remove negative data for unionization (negative gene expression means there is no data there)
 #'
 #' @return data frame with labels as rows; and columns with sum, mean, and Standard Deviation of unionized grid.data
 #'

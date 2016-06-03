@@ -11,6 +11,8 @@ unionize(grid.data, labels.to.sum, labels.grid, neg.rm = TRUE)
 \item{labels.to.sum}{The struction labels you want to unionize over. This is parameter is vectorized so you can sum over multiple labels and get statistical data for each label seperately}
 
 \item{labels.grid}{1D vector of labels (must be registered to grid.data)}
+
+\item{neg.rm}{Remove negative data for unionization (negative gene expression means there is no data there)}
 }
 \value{
 data frame with labels as rows; and columns with sum, mean, and Standard Deviation of unionized grid.data

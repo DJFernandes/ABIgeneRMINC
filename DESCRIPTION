@@ -8,7 +8,7 @@ Maintainer: Darren Fernandes <fernadj2@gmail.com>
 Description: Read, Write, and Analyzing Allen Gene Expression Raw Data.
     Convert to Space used in RMINC for Relating Gene Expression and MRI Data
 Suggests:
-    RMINC
+    RMINC,XML,doMC,foreach
 License: BSD
 LazyLoad: yes
 URL: https://github.com/DJFernandes/ABIgeneRMINC
