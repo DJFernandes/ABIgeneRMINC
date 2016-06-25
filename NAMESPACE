@@ -2,6 +2,7 @@
 
 export(allenVectorTOmincVector)
 export(find.gene.experiment)
+export(geneFoldChange)
 export(list.all.allen.genes)
 export(mincVectorTOallenVector)
 export(ont.children)
