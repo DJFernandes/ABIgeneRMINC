@@ -18,16 +18,18 @@ find.gene.experiment=function(geneAcronym) {
   
   ni=xmlAttrs(xmlfile)[['total_rows']]
   if (ni==0) {stop(paste('no experiments with gene acronym',geneAcronym))}
-  sids=rep(NA,ni) ; slices=rep(NA,ni)
+  sids=c() ; slices=c(); counter=0
   for (i in 1:ni) {
-   sids[i]=xmlValue(xmlfile[['section-data-sets']][[i]][['id']])
+   if (xmlValue(xmlfile[['section-data-sets']][[i]][['failed']])=='true') {next} #If experiment failed, skip
+   counter=counter+1
+   sids[counter]=xmlValue(xmlfile[['section-data-sets']][[i]][['id']])
     if (xmlValue(xmlfile[['section-data-sets']][[i]][["plane-of-section-id"]])==1) {
-      slices[i]='coronal'
-    } else {slices[i]='sagittal'}
+      slices[counter]='coronal'
+    } else {slices[counter]='sagittal'}
   }
   URLs=paste0("http://api.brain-map.org/grid_data/download/",sids,"?include=energy")
   
-  df=data.frame(gene=rep(geneAcronym,ni),slices,ExperimentID=sids,URLs)
+  df=data.frame(gene=rep(geneAcronym,length(sids)),slices,ExperimentID=sids,URLs)
   
   return(df)
 }
