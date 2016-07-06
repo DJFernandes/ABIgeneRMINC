@@ -37,7 +37,7 @@ allenVectorTOmincVector <- function(allen.vector,xyzDimSize=c(67,41,58)) {
 	idx=idx+1
         ret=allen.vector[idx]
         #set sizes attributes
-        attr(ret,'sizes')=c(41,67,58)
+        attr(ret,'sizes')=xyzDimSize[c(2,1,3)]
 	return(ret)
 }
 

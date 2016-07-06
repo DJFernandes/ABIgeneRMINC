@@ -36,8 +36,9 @@ mincVectorTOallenVector <- function(minc.vector,xyzDimSize=c(58,67,41)) {
 		function(x) unlist(lapply((nz-1):0,
 		function(z) z*ny*nx+((ny-1):0)*nx+x))))
 	idx=idx+1
+        ret=minc.vector[idx]
         #set sizes attributes
-        attr(ret,'sizes')=c(58,41,67)
+        attr(ret,'sizes')=xyzDimSize[c(1,3,2)]
 	return(ret)
-	return(minc.vector[idx])	
 }
+
