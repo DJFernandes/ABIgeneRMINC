@@ -46,7 +46,7 @@ interpolate.gene=function(genevec,maskvec,dimensions=rev(attr(genevec,'sizes')),
 #  dyn.load("interpgene.so")
   l=0.9
   # Find number of missing voxels. Interpolate till this number reaches 0
-  missing=sum(genevec[mask]==-1)
+  missing=sum(genevec[maskvec]==-1)
   # If iteration does not reduce missing voxels, broaden interpolation criteria.
   prevmissing=missing
   # Counter till you reach max iteration, then break
@@ -62,7 +62,7 @@ interpolate.gene=function(genevec,maskvec,dimensions=rev(attr(genevec,'sizes')),
          l=as.numeric(l),
          genei=as.numeric(genevec))$genei
     genevec=ret
-    missing=sum(genevec[mask]==-1)
+    missing=sum(genevec[maskvec]==-1)
     if (missing == prevmissing) {l=l*0.75}
     prevmissing=missing
     }
