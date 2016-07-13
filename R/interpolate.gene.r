@@ -52,7 +52,7 @@ interpolate.gene=function(genevec,maskvec,dimensions=rev(attr(genevec,'sizes')),
   # Counter till you reach max iteration, then break
   counter=0
     while (missing!=0) {
-    counter=counter+1 ; if (counter > itermax) {print("Failed Convergence")}
+    counter=counter+1 ; if (counter > itermax) {print(paste0("Failed Convergence. Still ",missing," voxels missing data"));break}
     ret=.Fortran("interpgene",
          gene=as.numeric(genevec),
          mask=as.logical(maskvec),

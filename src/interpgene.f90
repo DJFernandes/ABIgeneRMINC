@@ -32,7 +32,7 @@ subroutine interpgene(gene,mask,nx,ny,nz,l,genei)
      
      goodneigh=0 ; maskneigh=0 ; meangene=0.0
      !Iterate through nearest neighbours
-     do i2=(i-1),(i+1)
+     do i2=(i-2),(i+2)
         !skip elements outside array index
         if (i2<1) then
           cycle
@@ -40,7 +40,7 @@ subroutine interpgene(gene,mask,nx,ny,nz,l,genei)
         if (i2>nx) then
           cycle
         end if
-     do j2=(j-1),(j+1)
+     do j2=(j-2),(j+2)
         !skip elements outside array index
         if (j2<1) then
           cycle
@@ -48,7 +48,7 @@ subroutine interpgene(gene,mask,nx,ny,nz,l,genei)
         if (j2>ny) then
           cycle
         end if
-     do k2=(k-1),(k+1)
+     do k2=(k-2),(k+2)
         !skip elements outside array index
         if (k2<1) then
           cycle
