@@ -61,9 +61,15 @@ geneFoldChange=function(stats,gene,maskvector=NULL,mask=NULL,tgt.thresh,cntrst.t
 
        ## Mask out negative values (Allen gene expression does not exists there)
 	genemask=(!gene.vector<0)&maskvector
+        if (sum(genemask) == 0) {
+           warning('There are no gene expression voxels')
+        }
 
        ## Mask the statsvector and gene.vector
 	stats.masked=statsvector[genemask];gene.masked=gene.vector[genemask]
+        if (sum(stats.masked > tgt.thresh) == 0) {
+           warning('There are no target region has no voxels')
+        }
 
        ## If crst.thresh is not given, contrast is all the voxels
 	if (length(cntrst.thresh)==0) {
