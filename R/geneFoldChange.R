@@ -40,7 +40,7 @@
 #' # 
 #' # Foldchange of Nrp1 expression in target (regions with stats>2) vs contrast (whole brain)
 #' # using strings with filenames instead of 1-D vectors
-#' geneFoldChange(statFilename,nrp1Filename,mask = annotations,tgt.thresh=2)
+#' geneFoldChange(statFilename,nrp1Filename,mask = annotFilename,tgt.thresh=2)
 #' # 2.072129
 #' @export
 geneFoldChange=function(stats,gene,maskvector=NULL,mask=NULL,tgt.thresh,cntrst.thresh=NULL, checkOrientation = TRUE) {
@@ -68,7 +68,7 @@ geneFoldChange=function(stats,gene,maskvector=NULL,mask=NULL,tgt.thresh,cntrst.t
        ## Mask the statsvector and gene.vector
 	stats.masked=statsvector[genemask];gene.masked=gene.vector[genemask]
         if (sum(stats.masked > tgt.thresh) == 0) {
-           warning('There are no target region has no voxels')
+           warning('Target region has no voxels')
         }
 
        ## If crst.thresh is not given, contrast is all the voxels
@@ -77,6 +77,9 @@ geneFoldChange=function(stats,gene,maskvector=NULL,mask=NULL,tgt.thresh,cntrst.t
            full.mn = mean(gene.masked)
            fc=tgt.mn/full.mn
 	} else {
+           if (sum(stats.masked <= cntrst.thresh) == 0) {
+              warning('Contrast region has no voxels')
+           }
            tgt.mn = mean(gene.masked[stats.masked>tgt.thresh])
            crst.mn = mean(gene.masked[stats.masked<=cntrst.thresh])
            fc=tgt.mn/crst.mn

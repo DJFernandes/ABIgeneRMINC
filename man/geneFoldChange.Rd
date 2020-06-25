@@ -64,6 +64,6 @@ geneFoldChange(stats,nrp1expr,maskvector,tgt.thresh=2,cntrst.thresh=0.5)
 # 
 # Foldchange of Nrp1 expression in target (regions with stats>2) vs contrast (whole brain)
 # using strings with filenames instead of 1-D vectors
-geneFoldChange(statFilename,nrp1Filename,mask = annotations,tgt.thresh=2)
+geneFoldChange(statFilename,nrp1Filename,mask = annotFilename,tgt.thresh=2)
 # 2.072129
 }
