@@ -28,4 +28,3 @@ write.raw.gene(gene.expression,"outputfile.raw")
 
 # 'outputfile.raw' can be read again using "read.raw.gene" function
 }
-

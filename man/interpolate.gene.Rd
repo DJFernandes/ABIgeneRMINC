@@ -4,8 +4,12 @@
 \alias{interpolate.gene}
 \title{Interpolate Gene Expression}
 \usage{
-interpolate.gene(genevec, maskvec, dimensions = rev(attr(genevec, "sizes")),
-  itermax = 1000)
+interpolate.gene(
+  genevec,
+  maskvec,
+  dimensions = rev(attr(genevec, "sizes")),
+  itermax = 1000
+)
 }
 \arguments{
 \item{genevec}{1D vector of gene expression data. Missing data has value of -1.}
@@ -48,4 +52,3 @@ image(array(interp.gene,rev(attributes(interp.gene)$sizes))[,,25], ylab='Superio
 
 
 }
-

@@ -46,4 +46,3 @@ child.labels=ont.children(parent.label)[[1]]
 unionize(gene.expression,child.labels,labels.grid)
 
 }
-

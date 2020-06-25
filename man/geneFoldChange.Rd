@@ -4,8 +4,15 @@
 \alias{geneFoldChange}
 \title{Preferential Expresion in target}
 \usage{
-geneFoldChange(stats, gene, maskvector = NULL, tgt.thresh,
-  cntrst.thresh = NULL)
+geneFoldChange(
+  stats,
+  gene,
+  maskvector = NULL,
+  mask = NULL,
+  tgt.thresh,
+  cntrst.thresh = NULL,
+  checkOrientation = TRUE
+)
 }
 \arguments{
 \item{stats}{1-D vector or MINC filename whose values will define the target and contrast regions. It is recommended that you provide a 1D vector instead of a filename, though the code will work regardless. If you are providing a filename, make sure it is in MINC orientation (X=Left-to-Right, Y=Posterior-to-Anterior, Z=Inferior-to-Superior). This is usually the case with files produced with MINC Tools.}
@@ -17,6 +24,8 @@ geneFoldChange(stats, gene, maskvector = NULL, tgt.thresh,
 \item{tgt.thresh}{threshold for target regions (statsvector>tgt.thresh form the target region)}
 
 \item{cntrst.thresh}{threshold for contrast regions (statsvector<=crst.thresh form the contrast region). DEFAULT: contrast includes all the elements in the mask}
+
+\item{checkOrientation}{should I check orientation. You should only turn this off if you know for sure that stats, gene, and mask are in the same orientation (either all ABI or all MINC).}
 }
 \value{
 Fold-Change between mean expression in the target and contrast regions
@@ -27,9 +36,9 @@ This function will mask a statistic vector into a target and contrast region (de
 \examples{
 # I included several files in this package for this example: 
 #    The raw gene expression energy files for Nrp1 (http://api.brain-map.org/grid_data/download/74272479)
-nrp1Filename=system.file('extdata/Nrp1_energy_experiment74272479.raw',package="ABIgeneRMINC")
+nrp1Filename=system.file('extdata/Nrp1_P56_coronal_74272479_200um.zip',package="ABIgeneRMINC")
 #    Allen Brain Institute annotations (http://download.alleninstitute.org/informatics-archive/current-release/mouse_annotation/P56_Mouse_gridAnnotation.zip)
-annotFilename=system.file('extdata/gridAnnotation.raw',package="ABIgeneRMINC")
+annotFilename=system.file('extdata/P56_Mouse_gridAnnotation.zip',package="ABIgeneRMINC")
 #    T-statistics mincfiles comparing neuroanatomical volumes of mice raised in enriched environments vs standard lab cages.
 statFilename=system.file('extdata/enrichment_stats.mnc',package="ABIgeneRMINC")
 # 
@@ -39,11 +48,11 @@ statFilename=system.file('extdata/enrichment_stats.mnc',package="ABIgeneRMINC")
 nrp1expr=allenVectorTOmincVector(read.raw.gene(nrp1Filename))
 
 # Read stats file
-stats=mincGetVolume(statFilename)
+stats=RMINC::mincGetVolume(statFilename)
 
 # Read annotations, rotate it to MINC orientation, and binarize to make a brain maskvector
-annotations=allenVectorTOmincVector(read.raw.gene(annotFilename,labels=TRUE))
-maskvector=annotations>0
+annotations=allenVectorTOmincVector(read.raw.gene(annotFilename))
+maskvector=annotations>0 ; attributes(maskvector) = attributes(annotations)
 
 # Foldchange of Nrp1 expression in target (regions with stats>2) vs contrast (whole brain)
 geneFoldChange(stats,nrp1expr,maskvector,tgt.thresh=2)
@@ -55,7 +64,6 @@ geneFoldChange(stats,nrp1expr,maskvector,tgt.thresh=2,cntrst.thresh=0.5)
 # 
 # Foldchange of Nrp1 expression in target (regions with stats>2) vs contrast (whole brain)
 # using strings with filenames instead of 1-D vectors
-geneFoldChange(statFilename,nrp1Filename,maskvector,tgt.thresh=2)
+geneFoldChange(statFilename,nrp1Filename,mask = annotations,tgt.thresh=2)
 # 2.072129
 }
-

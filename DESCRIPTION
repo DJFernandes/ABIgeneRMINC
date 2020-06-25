@@ -12,4 +12,4 @@ Suggests:
 License: BSD
 LazyLoad: yes
 URL: https://github.com/DJFernandes/ABIgeneRMINC
-RoxygenNote: 5.0.1
+RoxygenNote: 7.0.2

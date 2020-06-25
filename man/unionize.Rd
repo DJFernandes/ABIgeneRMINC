@@ -49,4 +49,3 @@ label.num=subset(GridStructureLabels,name=='Paraventricular nucleus of the thala
 unionize(gene.expression,label.num,labels.grid)
 
 }
-
