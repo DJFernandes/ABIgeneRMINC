@@ -51,23 +51,29 @@ interpolate.gene=function(genevec,maskvec,dimensions=rev(attr(genevec,'sizes')),
   # If iteration does not reduce missing voxels, broaden interpolation criteria.
   prevmissing=missing
   # Counter till you reach max iteration, then break
-  counter=0
+  if (missing==0) {
+    ret = genevec
+  } else {
+    counter=0
     while (missing!=0) {
-    counter=counter+1 ; if (counter > itermax) {print(paste0("Failed Convergence. Still ",missing," voxels missing data"));break}
-    ret=.Fortran("interpgene",
-         gene=as.numeric(genevec),
-         mask=as.logical(maskvec),
-         nx=as.integer(dimensions[1]),
-         ny=as.integer(dimensions[2]),
-         nz=as.integer(dimensions[3]),
-         l=as.numeric(l),
-         genei=as.numeric(genevec))$genei
-    genevec=ret
-    missing=sum(genevec[maskvec]==-1)
-    if (missing == prevmissing) {l=l*0.75}
-    prevmissing=missing
+      counter=counter+1
+      if (counter > itermax) {
+         print(paste0("Failed Convergence. Still ",missing," voxels missing data"));break}
+      ret=.Fortran("interpgene",
+           gene=as.numeric(genevec),
+           mask=as.logical(maskvec),
+           nx=as.integer(dimensions[1]),
+           ny=as.integer(dimensions[2]),
+           nz=as.integer(dimensions[3]),
+           l=as.numeric(l),
+           genei=as.numeric(genevec))$genei
+      genevec=ret
+      missing=sum(genevec[maskvec]==-1)
+      if (missing == prevmissing) {l=l*0.75}
+      prevmissing=missing
     }
-  attributes(ret) = c(attributes(ret),save_attributes)
+    attributes(ret) = c(attributes(ret),save_attributes)
+  }
   return(ret)
 }
 
