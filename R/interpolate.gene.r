@@ -39,6 +39,7 @@
 
 
 interpolate.gene=function(genevec,maskvec,dimensions=rev(attr(genevec,'sizes')),itermax=1000) {
+  save_attributes = attributes(genevec)
 
   if (is.null(dimensions)) {stop('MUST specifiy dimensions of genevec (integer vector of length 3), or have sizes attribute')}
 
@@ -66,7 +67,7 @@ interpolate.gene=function(genevec,maskvec,dimensions=rev(attr(genevec,'sizes')),
     if (missing == prevmissing) {l=l*0.75}
     prevmissing=missing
     }
-  attr(ret,'sizes')=rev(dimensions)
+  attributes(ret) = c(attributes(ret),save_attributes)
   return(ret)
 }
 
