@@ -7,6 +7,7 @@
 #'
 #' @param allen.data data (either as array or 1D vector) in Allen Space Orientation
 #' @param xyzDimSize dimensions of Allen Space (in x,y,z). Default is c(67,41,58), the dimensions of Allen Gene Expression data
+#' @param orientation.check check orientation attribute.
 
 #' @return 1-D vector in MINC space orientation
 #'
@@ -29,7 +30,7 @@
 #' all(gene.expression == gene.expression.allen)
 #  # TRUE
 #' @export
-allenVectorTOmincVector <- function(allen.data,xyzDimSize=NULL) {
+allenVectorTOmincVector <- function(allen.data,xyzDimSize=NULL,orientation.check=T) {
         save_attributes = attributes(allen.data)
         save_attributes = save_attributes[!names(save_attributes) %in% 'dim']
 
@@ -39,12 +40,14 @@ allenVectorTOmincVector <- function(allen.data,xyzDimSize=NULL) {
             attributes(allen.data) = save_attributes
         }
 
+        if ( orientation.check ) {
+        if ( !is.null(attr(allen.data,'orientation')) ) {
         if ( attr(allen.data,'orientation') != 'ABI' ) {
            warning(
                     'This file does not appear to be in Allen orientation.',
                     'I will keep going but your results may be wrong.'
                   )
-        }
+        }}}
         if ( is.null(attr(allen.data,'sizes')) & is.null(xyzDimSize) ) {
            stop("Either supply the sizes attribute in allen.data or give xyzDimSize argument")
         }
@@ -96,6 +99,7 @@ allenVectorTOmincVector <- function(allen.data,xyzDimSize=NULL) {
 #'
 #' @param minc.data data (either as array or 1D vector) in MINC Space Orientation
 #' @param xyzDimSize dimensions of MINC Space (in x,y,z). Default is c(58,67,41), the dimensions of Allen Gene Expression data
+#' @param orientation.check check orientation attribute.
 #'
 #' @return 1-D vector in Allen space orientation
 #'
@@ -118,7 +122,7 @@ allenVectorTOmincVector <- function(allen.data,xyzDimSize=NULL) {
 #' all(gene.expression == gene.expression.allen)
 #' # TRUE
 #' @export
-mincVectorTOallenVector <- function(minc.data,xyzDimSize=NULL) {
+mincVectorTOallenVector <- function(minc.data,xyzDimSize=NULL,orientation.check=T) {
         save_attributes = attributes(minc.data)
         save_attributes = save_attributes[!names(save_attributes) %in% 'dim']
 
@@ -128,14 +132,16 @@ mincVectorTOallenVector <- function(minc.data,xyzDimSize=NULL) {
             attributes(minc.data) = save_attributes
         }
 
+        if ( orientation.check ) {
         if ( !any(grepl('^minc',attr(minc.data, 'class'))) ) {
+        if ( !is.null(attr(minc.data,'orientation')) ) {
            if ( attr(minc.data,'orientation') != 'MINC' ) {
               warning(
                        'This file does not appear to be in MINC orientation.',
                        'I will keep going but your results may be wrong.'
                      )
            }
-        }
+        }}}
         if ( !is.null(attr(minc.data,'sizes')) & !is.null(xyzDimSize) ) {
            if (all(rev(attr(minc.data,'sizes')) == xyzDimSize)) { 
               cat(
