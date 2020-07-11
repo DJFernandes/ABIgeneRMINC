@@ -101,7 +101,7 @@ midplane.reflect=function(gene.expression,reflect.dim=NULL,minc.array.sizes=NULL
           idx1=paste0(",",idx11,":",idx12,",")
           idx2=paste0(",(",idx21,"):",idx22,",")
      } else if (rev.reflect.dim==1) {
-          idx1=paste0(,idx11,":",idx12,",,")
+          idx1=paste0(idx11,":",idx12,",,")
           idx2=paste0("(",idx21,"):",idx22,",,")}
      
      
