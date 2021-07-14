@@ -98,7 +98,7 @@ Note that we can save the resampled statistics in a file (ex. 'resampled_statist
 
 Let us run the gene expression analysis. We will set the target threshold to be 2 (i.e. regions with statistics above 2 are part of the ROI). We will also consider the statistics to be symmetric (i.e. -2 and below is also part of the ROI). We will use the whole brain as the contrast region. We will also run the jobs locally and in parallel on 4 cores. 
 
-```
+```R
 gene_fold_change = adult_gene_expression_analysis(
    anatomy_statistics = 'resampled_statistics.mnc' ,
    gene_expression_paths = NULL                    ,
@@ -111,7 +111,7 @@ gene_fold_change = adult_gene_expression_analysis(
 
 
 
-To run Gene Ontology Enrichment Analysis, use the GOrilla_run function. In this example, we will run ontology on the top 5000 genes with the highest fold-change. 
+To run Gene Ontology Enrichment Analysis, use the GOrilla_run function. In this example, we will run ontology on the top 7000 genes with the highest fold-change. 
 
 ```
 background_genes = gene_fold_change %>% arrange(desc(fold_change)) %>% pull(acronym)
