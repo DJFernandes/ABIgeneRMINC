@@ -4,12 +4,14 @@
 \alias{mincVectorTOallenVector}
 \title{Rotates MINC data to Allen space}
 \usage{
-mincVectorTOallenVector(minc.data, xyzDimSize = NULL)
+mincVectorTOallenVector(minc.data, xyzDimSize = NULL, orientation.check = T)
 }
 \arguments{
 \item{minc.data}{data (either as array or 1D vector) in MINC Space Orientation}
 
 \item{xyzDimSize}{dimensions of MINC Space (in x,y,z). Default is c(58,67,41), the dimensions of Allen Gene Expression data}
+
+\item{orientation.check}{check orientation attribute.}
 }
 \value{
 1-D vector in Allen space orientation

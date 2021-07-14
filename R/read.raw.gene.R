@@ -185,7 +185,7 @@ rrg.file.check = function(filename, url, raw.allowed=T) {
 
 rrg.download.url = function(url_link) {
            temp = tempfile()
-           download.file(url_link,temp)
+           download.file(url_link,temp,quiet=T)
            return(temp)
 }
 
