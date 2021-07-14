@@ -113,7 +113,7 @@ gene_fold_change = adult_gene_expression_analysis(
 
 To run Gene Ontology Enrichment Analysis, use the GOrilla_run function. In this example, we will run ontology on the top 7000 genes with the highest fold-change. 
 
-```
+```R
 background_genes = gene_fold_change %>% arrange(desc(fold_change)) %>% pull(acronym)
 target_genes = background_genes[1:7000]
 
