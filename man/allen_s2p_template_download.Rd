@@ -4,12 +4,14 @@
 \alias{allen_s2p_template_download}
 \title{Download ABI 50um template}
 \usage{
-allen_s2p_template_download(outfile = NULL, mask = F)
+allen_s2p_template_download(outfile = NULL, mask = F, labels = F)
 }
 \arguments{
 \item{outfile}{Optional outfile to write}
 
 \item{mask}{If true, then the mask is downloaded. Default is FALSE, so the template is downloaded.}
+
+\item{labels}{If true, then the labels are downloaded. Default is FALSE, so the template is downloaded. Warning: labels may have integers that can't be written to a MINC file.}
 }
 \value{
 template data as a 1D vector of class mincSingleDim

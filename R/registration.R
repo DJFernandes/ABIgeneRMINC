@@ -333,10 +333,11 @@ silentmincwrite = function(...) {
 #' Downloads and reads the ABI 50um template with an option to write to a mincfile
 #' @param outfile Optional outfile to write
 #' @param mask If true, then the mask is downloaded. Default is FALSE, so the template is downloaded. 
+#' @param labels If true, then the labels are downloaded. Default is FALSE, so the template is downloaded. Warning: labels may have integers that can't be written to a MINC file.
 #' @return template data as a 1D vector of class mincSingleDim
 #' @importFrom nat read.nrrd
 #' @import RMINC
-allen_s2p_template_download = function(outfile=NULL, mask=F) { 
+allen_s2p_template_download = function(outfile=NULL, mask=F, labels = F) { 
    read.nrrd = nat::read.nrrd
    if (is.null(outfile)) {
       save_file=F
@@ -345,7 +346,7 @@ allen_s2p_template_download = function(outfile=NULL, mask=F) {
       save_file=T
       if (file.exists(outfile)) stop(outfile,' is an existing file. Delete it before running.')
     }
-   if (!mask) {
+   if (!mask & !labels) {
       url_link = 'http://download.alleninstitute.org/informatics-archive/current-release/mouse_ccf/average_template/average_template_50.nrrd'
     } else {
       url_link = 'http://download.alleninstitute.org/informatics-archive/current-release/mouse_ccf/annotation/ccf_2017/annotation_50.nrrd'
@@ -353,7 +354,7 @@ allen_s2p_template_download = function(outfile=NULL, mask=F) {
    tmpfl_nrrd = tempfile()
    download.file(url_link,tmpfl_nrrd,quiet=T)
 
-   if (mask) {
+   if (mask || labels) {
       # innocuous warning when reading allen labels 
       h = function(w) { 
            if ( w$message == "'signed = FALSE' is only valid for integers of sizes 1 and 2" ) {
@@ -386,7 +387,7 @@ allen_s2p_template_download = function(outfile=NULL, mask=F) {
 
    tmpfl1 = tempfile(fileext='.mnc')
    
-   if (mask) {
+   if (mask || labels) {
     tmpfl2 = tempfile(fileext='.mnc')
    }
    
@@ -402,17 +403,27 @@ allen_s2p_template_download = function(outfile=NULL, mask=F) {
 
    tmpvol = mincGetVolume(tmpfl1) ; attr_tmpvol = attributes(tmpvol)
    tmpvol = allen_data ; attributes(tmpvol) = attr_tmpvol
-   
-   if (!mask) {
-      silentmincwrite(tmpvol,output.filename=outfile)
-    } else {
+
+   if (mask) {
       silentmincwrite(tmpvol,output.filename=tmpfl2)
       system(paste0(
             'mincmorph ', 
             ' -successive CCCCCCCDDDDB[0.9:1.1:1:0] ',
             ' ', tmpfl2, ' ', outfile
       ))
-    }
+      ret = mincGetVolume(outfile)
+   } else {
+      ret = tmpvol
+   }
+   
+   if (labels & save_file) {
+      silentmincwrite(tmpvol,output.filename=outfile)
+      warning('labels may have integers that cannot be writen to mincFile')
+   }
+
+   if (!labels & !mask & save_file) {
+      silentmincwrite(tmpvol,output.filename=outfile)
+   }
 
    ret = mincGetVolume(outfile)
 
