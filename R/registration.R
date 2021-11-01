@@ -425,8 +425,6 @@ allen_s2p_template_download = function(outfile=NULL, mask=F, labels = F) {
       silentmincwrite(tmpvol,output.filename=outfile)
    }
 
-   ret = mincGetVolume(outfile)
-
    unlink(tmpfl_nrrd)
    unlink(tmpfl1)
    if (mask) {unlink(tmpfl2)}
