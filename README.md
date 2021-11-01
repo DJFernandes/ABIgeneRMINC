@@ -86,11 +86,10 @@ There is also an image created to evaluate the quality of the registration. Cont
 The statistics can now be transformed to the gene expression atlas space, which is the final step before conducting gene expression analysis. 
 
 ```R
-resampled_statistics = ABI_resample(
-         anatomy = statsfile, 
-         anatomy_transform = anatomy_transform_path, 
-         ABI_statistics_file = 'resampled_statistics.mnc',
-         keep_files = T
+ resampled_statistics = ABI_resample(
+         soure_volume = statsfile, 
+         xfm_transform = anatomy_transform_path, 
+         source_volume_resampled_file = 'resampled_statistics.mnc'
        ) 
 ```
 

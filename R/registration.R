@@ -648,6 +648,101 @@ allen_grid_labels_download = function() {
    return(brainmask)
 }
 
+#' Resample volume to ABI space
+#'
+#' Resample a volume to a target with optional transform using linear interpolation.
+#' @param source_volume MINC file or vector you want to transform
+#' @param target_volume MINC file or vector you want to resample to. If NULL, it is assumed you want to transform to ABI CCFv3 50 micron. 
+#' @param xfm_transform xfm file denoting the transform. Default NULL means no transformation
+#' @param source_volume_resampled_file filepath to save resampled source_volume. If NULL (default), file is not saved. 
+#' @return source_volume resampled to target space
+#' @import RMINC
+#' @export
+ABI_resample = function(
+     source_volume, 
+     target_volume = NULL,
+     xfm_transform = NULL,
+     source_volume_resampled_file = NULL
+ ) {
+
+   if (!is.null(source_volume_resampled_file)) {
+      outdir = dirname(source_volume_resampled_file)
+   } else {
+      outdir = tempdir()
+   }
+   tmpfl_source_res = tempfile(
+                              pattern='source_res_',
+                              tmpdir=outdir,
+                              fileext='.mnc')
+   tmpfl_source = tempfile(
+                              pattern='source_',
+                              tmpdir=outdir,
+                              fileext='.mnc')
+   tmpfl_target = tempfile(
+                              pattern='target_',
+                              tmpdir=outdir,
+                              fileext='.mnc')
+   tmpfl_source_res = tempfile(
+                              pattern='source_res_',
+                              tmpdir=outdir,
+                              fileext='.mnc')
+
+   if (is.null(source_volume_resampled_file)) {
+      source_volume_resampled_file = tmpfl_source_res
+   }
+
+   if (is.character(source_volume)) {
+      RMINC:::mincFileCheck(source_volume)
+   } else {
+      mincWriteVolume(source_volume, output.filename = tmpfl_source)
+      source_volume = tmpfl_source
+   }
+
+   if (is.character(target_volume)) {
+      RMINC:::mincFileCheck(target_volume)
+      likeVol = target_volume
+   } else if (!is.null(attributes(target_volume)$likeVolume)) {      
+      mincWriteVolume(target_volume, output.filename = tmpfl_target)
+      target_volume = tmpfl_target
+      likeVol = attributes(target_volume)$likeVolume
+   } else {
+      target_volume = tmpfl_target
+      x = allen_s2p_template_download(target_volume)
+   }
+   on.exit( {
+      unlink(tmpfl_target)
+      unlink(tmpfl_source)
+      unlink(tmpfl_source_res)
+   } )
+
+   if (!is.null(xfm_transform)) {
+     if (!is.character(xfm_transform)) {
+        stop('xfm_transform argument must be a character denoting a valid file-path')
+     }
+     if (!file.exists(xfm_transform)) {
+        stop('xfm_transform argument be an existing file-path')
+     }
+     tfm_str = paste0('-transform ',xfm_transform)
+   } else {
+     tfm_str = ""
+   }
+
+   resample_cmd = paste0(
+          'mincresample ',
+          '-quiet -like ',target_volume,' ',
+          tfm_str,' ',
+          source_volume,' ',
+          source_volume_resampled_file
+   )
+
+   x = system(resample_cmd, intern=T)
+   
+   ret = mincGetVolume(source_volume_resampled_file)
+   
+   return(ret)
+   
+}
+
 #' Gene expression spatial enrichment
 #' 
 #' Conducts a gene expression spatial enrichment analysis for arbitrary anatomy statistics. Statistics above the target threshold constitute the target region-of-interest (ROI). Statistics below a contrast threshold constitute the contrast region. Gene expression spatial enrichment is calculated for any number of genes in the ABI gene expression atlas. Enrichments is computed using a fold-change measure: expression in target ROI divided by expression in contrast region. If contrast threshold is not suppled, then the contrast regions is assumed to be the whole brain. 
@@ -751,9 +846,9 @@ adult_gene_expression_analysis = function(
 
       if (resample_flag) {
           anatomy_statistics = ABI_resample(
-                anatomy_statistics, 
-                anatomy_transform, 
-                allen_ccf3v_template)
+                source_volume = anatomy_statistics, 
+                xfm_transform = anatomy_transform, 
+                target_volume = allen_ccf3v_template)
        }
    }
 
