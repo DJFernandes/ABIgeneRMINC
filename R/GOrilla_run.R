@@ -76,7 +76,7 @@ GOrilla_run = function(target.genes, background.genes, tmpdir = tempdir()) {
    colnames(GO_res) = cnames
 
    # clean up gene list
-   gene = GO_res[,'Genes']
+   gene = pull(GO_res,'Genes')
    gene = lapply(gene, function(x) {
          strsplit(x,split='\r\n')[[1]][-1]
    })
