@@ -244,6 +244,7 @@ minc_ants_register = function(
                     proc_name,term_file,
                     startval,maxval,pb,
                     epoch_weights = 1,
+                    downsample_and_retry = F,
                     ...) {
          unlink(stdout) ; unlink(stderr)
          xp = command %>% strsplit(split = ' ') %>% .[[1]]
@@ -270,8 +271,47 @@ minc_ants_register = function(
                }
             }
             if (!p$is_alive()) {
-               message(proc_name, ' died mysteriously. Consider re-running with verbose=T')
-               stop(proc_name, ' died')
+               message('\n',proc_name, ' died :(')
+               if (downsample_and_retry) {
+                  message(paste(
+                     "The usual suspect is that the",
+                     "files are too big for ANTs to register"))
+                  n_iter = length(grep(paste0(
+                          'XXDIAGNOSTIC,Iteration,metricValue,',
+                          'convergenceValue,ITERATION_TIME_INDEX',
+                          ',SINCE_LAST'),
+                     readLines(stdout)))
+                  message(paste(
+                     "Looks like ANTs made it to",
+                     "Level" , n_iter, 'before dying'))
+                  message(paste(
+                     "I will re-run the registration and stop at",
+                     "Level" , n_iter-1))
+                  
+                  ln_iter = grep('--convergence',xp[-1])+1
+                  iter_string = xp[-1][ln_iter] %>% 
+                     gsub('^.|.$', '', .) %>% 
+                     strsplit(split=',') %>% .[[1]]
+                  iter_string_new = iter_string[1] %>% 
+                     strsplit(split='x') %>% .[[1]] %>% 
+                     ( function(x) { 
+                        x[ (n_iter) : length(x) ] = 0
+                        x
+                     }) %>% 
+                     paste(collapse='x') %>% 
+                     c(iter_string[-1])
+                  xp[-1][ln_iter] = paste0('[',paste(iter_string_new,collapse=','),']')
+
+                  command = paste(xp,collapse=' ')
+                  system_cmd(
+                                command,stdout,stderr,
+                                proc_name,term_file,
+                                startval,maxval,pb,
+                                epoch_weights = epoch_weights,
+                                downsample_and_retry = F)
+               } else {
+                  stop(proc_name, ' died')
+               }
             }
           Sys.sleep(5)
           }
@@ -308,6 +348,7 @@ minc_ants_register = function(
             maxval = 0.999,
             pb = pb,
             epoch_weights = c(7.5e-09, 3.8e-06, 0.001953125, 1),
+            downsample_and_retry = T
          )
       pbapply::setpb(pb,0.999)
    
@@ -321,156 +362,6 @@ minc_ants_register = function(
 
 }
 
-#' Silently write minc file
-#'
-#' @importFrom RMINC mincWriteVolume
-silentmincwrite = function(...) {
-   sink('/dev/null') ; mincWriteVolume(...) ; sink()
-}
-
-#' Download ABI 50um template
-#'
-#' Downloads and reads the ABI 50um template with an option to write to a mincfile
-#' @param outfile Optional outfile to write
-#' @param mask If true, then the mask is downloaded. Default is FALSE, so the template is downloaded. 
-#' @param labels If true, then the labels are downloaded. Default is FALSE, so the template is downloaded. Warning: labels may have integers that can't be written to a MINC file.
-#' @return template data as a 1D vector of class mincSingleDim
-#' @importFrom nat read.nrrd
-#' @import RMINC
-allen_s2p_template_download = function(outfile=NULL, mask=F, labels = F) { 
-   read.nrrd = nat::read.nrrd
-   if (is.null(outfile)) {
-      save_file=F
-      outfile = tempfile(fileext='.mnc')
-    } else {
-      save_file=T
-      if (file.exists(outfile)) stop(outfile,' is an existing file. Delete it before running.')
-    }
-   if (!mask & !labels) {
-      url_link = 'http://download.alleninstitute.org/informatics-archive/current-release/mouse_ccf/average_template/average_template_50.nrrd'
-    } else {
-      url_link = 'http://download.alleninstitute.org/informatics-archive/current-release/mouse_ccf/annotation/ccf_2017/annotation_50.nrrd'
-    }
-   tmpfl_nrrd = tempfile()
-   download.file(url_link,tmpfl_nrrd,quiet=T)
-
-   if (mask || labels) {
-      # innocuous warning when reading allen labels 
-      h = function(w) { 
-           if ( w$message == "'signed = FALSE' is only valid for integers of sizes 1 and 2" ) {
-              invokeRestart( "muffleWarning" )
-           }}        
-      vol = withCallingHandlers( read.nrrd(tmpfl_nrrd), warning = h )
-    } else {
-      vol = read.nrrd(tmpfl_nrrd)
-    }
-
-   attr_vol = attributes(vol)
-   if (mask) { 
-     vol = as.integer(vol>0.5) ; dim(vol) = attr_vol$dim 
-   }
-   imagesize = attr_vol$header$sizes
-   spacing = diag(attr_vol$header$`space directions`)/1000
-   origin_coord = c(-6.31 , -4.325 , -5.44)
-   direction = diag(c(1,1,1))
-
-   allen_data = vol ; attributes(allen_data)$sizes = rev(dim(vol))
-   attr(allen_data,'ANTsRparam') = list(
-          imagesize = imagesize,
-          spacing = spacing,
-          origin = origin_coord,
-          direction = direction
-    )
-   allen_data = allenVectorTOmincVector(allen_data)
-
-   template_file = system.file('extdata/Dorr_resampled_200um.mnc',package="ABIgeneRMINC")
-
-   tmpfl1 = tempfile(fileext='.mnc')
-   
-   if (mask || labels) {
-    tmpfl2 = tempfile(fileext='.mnc')
-   }
-   
-   cmd1 = paste0(
-            'mincresample -quiet ', 
-            ifelse(mask,'-labels',''),' ',
-            ' -nelements ',paste(attr(allen_data,'ANTsRparam')$imagesize,collapse=' '),
-            ' -step ',paste(attr(allen_data,'ANTsRparam')$spacing,collapse=' '),
-            ' -start ',paste(attr(allen_data,'ANTsRparam')$origin,collapse=' '),
-            ' ', template_file, ' ', tmpfl1
-   )
-   system(cmd1)
-
-   tmpvol = mincGetVolume(tmpfl1) ; attr_tmpvol = attributes(tmpvol)
-   tmpvol = allen_data ; attributes(tmpvol) = attr_tmpvol
-
-   if (mask) {
-      silentmincwrite(tmpvol,output.filename=tmpfl2)
-      system(paste0(
-            'mincmorph ', 
-            ' -successive CCCCCCCDDDDB[0.9:1.1:1:0] ',
-            ' ', tmpfl2, ' ', outfile
-      ))
-      ret = mincGetVolume(outfile)
-   } else {
-      ret = tmpvol
-   }
-   
-   if (labels & save_file) {
-      silentmincwrite(tmpvol,output.filename=outfile)
-      warning('labels may have integers that cannot be writen to mincFile')
-   }
-
-   if (!labels & !mask & save_file) {
-      silentmincwrite(tmpvol,output.filename=outfile)
-   }
-
-   unlink(tmpfl_nrrd)
-   unlink(tmpfl1)
-   if (mask) {unlink(tmpfl2)}
-   if (!save_file) {unlink(outfile)}
-
-   return(ret)
-}
-
-#' Pad or crop volume
-#'
-#' Pad or crop 2mm to volume on all sides
-#' @param infile input MINC file
-#' @param outfile outfile MINC file
-#' @param operation If 'pad', then 2mm is added to all sides. If crop, then 2mm is cropped from all sides.
-#' @importFrom RMINC mincConvertVoxelToWorld minc.separation.sizes minc.dimensions.sizes
-mincvol_pad_crop = function(infile, outfile, operation = c('pad','crop')) {
-
-   if (length(operation) != 1) {
-      stop('operation must be either pad OR crop')
-   } else if ( ! operation %in% c('pad','crop') ) {
-      stop('operation must be either pad OR crop, not', operation)
-   }
-
-   starts = RMINC::mincConvertVoxelToWorld(infile,0,0,0)
-   steps = rev(RMINC::minc.separation.sizes(infile))
-   nelements = rev(RMINC::minc.dimensions.sizes(infile))
-
-   if (operation == 'pad') {
-      new_starts = starts - 2
-      new_nelements = nelements + ( 4 / steps )
-    } else if (operation == 'crop') {
-      new_starts = starts + 2
-      new_nelements = nelements - ( 4 / steps )
-    }
-   
-   cmd1 = paste0(
-            'mincresample -quiet', 
-            ' -nelements ', paste(new_nelements,collapse=' '),
-            ' -step ', paste(steps,collapse=' '),
-            ' -start ', paste(new_starts,collapse=' '),
-            ' ', infile, ' ', outfile
-   )
-   system(cmd1)
-   
-   return(outfile)
-}
 
 #' Resample and check registration quality
 #'
@@ -648,108 +539,13 @@ ABI_template_align = function(
                        anatomy_transform,
                        resampled_anatomy_template,
                        reg_pik)
+         
+         if ( ( dld_flag & keep_files ) | (!dld_flag) ) {
+            attributes(anatomy_transform)$allen_ccf3v_template = allen_ccf3v_template
+            attributes(anatomy_transform)$allen_ccf3v_mask = allen_ccf3v_mask
+         } 
+         
          return(anatomy_transform)
-}
-
-allen_grid_labels_download = function() {
-   url_link = 'http://download.alleninstitute.org/informatics-archive/current-release/mouse_annotation/P56_Mouse_gridAnnotation.zip'
-   brainmask = read.raw.gene(url_link,labels=TRUE,url=T)
-   return(brainmask)
-}
-
-#' Resample volume to ABI space
-#'
-#' Resample a volume to a target with optional transform using linear interpolation.
-#' @param source_volume MINC file or vector you want to transform
-#' @param target_volume MINC file or vector you want to resample to. If NULL, it is assumed you want to transform to ABI CCFv3 50 micron. 
-#' @param xfm_transform xfm file denoting the transform. Default NULL means no transformation
-#' @param source_volume_resampled_file filepath to save resampled source_volume. If NULL (default), file is not saved. 
-#' @return source_volume resampled to target space
-#' @import RMINC
-#' @export
-ABI_resample = function(
-     source_volume, 
-     target_volume = NULL,
-     xfm_transform = NULL,
-     source_volume_resampled_file = NULL
- ) {
-
-   if (!is.null(source_volume_resampled_file)) {
-      outdir = dirname(source_volume_resampled_file)
-   } else {
-      outdir = tempdir()
-   }
-   tmpfl_source_res = tempfile(
-                              pattern='source_res_',
-                              tmpdir=outdir,
-                              fileext='.mnc')
-   tmpfl_source = tempfile(
-                              pattern='source_',
-                              tmpdir=outdir,
-                              fileext='.mnc')
-   tmpfl_target = tempfile(
-                              pattern='target_',
-                              tmpdir=outdir,
-                              fileext='.mnc')
-   tmpfl_source_res = tempfile(
-                              pattern='source_res_',
-                              tmpdir=outdir,
-                              fileext='.mnc')
-
-   if (is.null(source_volume_resampled_file)) {
-      source_volume_resampled_file = tmpfl_source_res
-   }
-
-   if (is.character(source_volume)) {
-      RMINC:::mincFileCheck(source_volume)
-   } else {
-      mincWriteVolume(source_volume, output.filename = tmpfl_source)
-      source_volume = tmpfl_source
-   }
-
-   if (is.character(target_volume)) {
-      RMINC:::mincFileCheck(target_volume)
-      likeVol = target_volume
-   } else if (!is.null(attributes(target_volume)$likeVolume)) {      
-      mincWriteVolume(target_volume, output.filename = tmpfl_target)
-      target_volume = tmpfl_target
-      likeVol = attributes(target_volume)$likeVolume
-   } else {
-      target_volume = tmpfl_target
-      x = allen_s2p_template_download(target_volume)
-   }
-   on.exit( {
-      unlink(tmpfl_target)
-      unlink(tmpfl_source)
-      unlink(tmpfl_source_res)
-   } )
-
-   if (!is.null(xfm_transform)) {
-     if (!is.character(xfm_transform)) {
-        stop('xfm_transform argument must be a character denoting a valid file-path')
-     }
-     if (!file.exists(xfm_transform)) {
-        stop('xfm_transform argument be an existing file-path')
-     }
-     tfm_str = paste0('-transform ',xfm_transform)
-   } else {
-     tfm_str = ""
-   }
-
-   resample_cmd = paste0(
-          'mincresample ',
-          '-quiet -like ',target_volume,' ',
-          tfm_str,' ',
-          source_volume,' ',
-          source_volume_resampled_file
-   )
-
-   x = system(resample_cmd, intern=T)
-   
-   ret = mincGetVolume(source_volume_resampled_file)
-   
-   return(ret)
-   
 }
 
 #' Gene expression spatial enrichment
@@ -857,7 +653,7 @@ adult_gene_expression_analysis = function(
           anatomy_statistics = ABI_resample(
                 source_volume = anatomy_statistics, 
                 xfm_transform = anatomy_transform, 
-                target_volume = allen_ccf3v_template)
+                target_space_name = 'adult gene expression')
        }
    }
 
@@ -865,7 +661,7 @@ adult_gene_expression_analysis = function(
       RMINC:::mincFileCheck(anatomy_statistics)
       anatomy_statistics = mincVectorTOallenVector(mincGetVolume(anatomy_statistics))
    }
-
+   
    if (symmetric_statistics) {
       anatomy_statistics = abs(anatomy_statistics)
    }
@@ -969,6 +765,7 @@ adult_gene_expression_analysis = function(
        })}
 
     if (is.null(parallel)) {
+        browser()
         if ("pbapply" %in% rownames(installed.packages())) {
              lapply = pbapply::pblapply
          }
