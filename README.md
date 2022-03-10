@@ -87,8 +87,9 @@ The statistics can now be transformed to the gene expression atlas space, which 
 
 ```R
  resampled_statistics = ABI_resample(
-         soure_volume = statsfile, 
+         source_volume = statsfile, 
          xfm_transform = anatomy_transform_path, 
+         target_space_name = 'adult gene expression',
          source_volume_resampled_file = 'resampled_statistics.mnc'
        ) 
 ```
